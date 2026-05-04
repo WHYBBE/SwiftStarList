@@ -1,0 +1,26 @@
+import Foundation
+
+final class SettingsManager: ObservableObject {
+    static let shared = SettingsManager()
+    private let defaults = UserDefaults.standard
+    private let settingsKey = "app_settings"
+
+    @Published var settings: AppSettings {
+        didSet { save() }
+    }
+
+    private init() {
+        if let data = defaults.data(forKey: settingsKey),
+           let decoded = try? JSONDecoder().decode(AppSettings.self, from: data) {
+            settings = decoded
+        } else {
+            settings = .default
+        }
+    }
+
+    private func save() {
+        if let data = try? JSONEncoder().encode(settings) {
+            defaults.set(data, forKey: settingsKey)
+        }
+    }
+}
