@@ -9,7 +9,15 @@ struct StarListView: View {
         NavigationSplitView {
             VStack(spacing: 0) {
                 SearchBar(text: $viewModel.searchText)
-                    .padding(8)
+                    .padding(.horizontal, 8)
+                    .padding(.top, 8)
+
+                if !viewModel.searchText.isEmpty {
+                    scopeBar
+                        .padding(.horizontal, 8)
+                        .padding(.top, 4)
+                        .padding(.bottom, 4)
+                }
 
                 filterBar
 
@@ -73,6 +81,24 @@ struct StarListView: View {
         .navigationSplitViewStyle(.automatic)
     }
 
+    private var scopeBar: some View {
+        HStack(spacing: 4) {
+            ForEach(SearchScope.allCases, id: \.self) { scope in
+                Button(action: { viewModel.searchScope = scope }) {
+                    Text(scope.displayName)
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(viewModel.searchScope == scope ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                        .foregroundColor(viewModel.searchScope == scope ? .white : .secondary)
+                        .cornerRadius(10)
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer()
+        }
+    }
+
     private var filterBar: some View {
         HStack(spacing: 6) {
             Picker("排序", selection: $viewModel.sortOption) {
@@ -91,7 +117,7 @@ struct StarListView: View {
 
             Spacer()
 
-            Text("\(viewModel.filteredRepos.count) 个仓库")
+            Text("\(viewModel.filteredRepos.count)")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -112,12 +138,13 @@ struct StarListView: View {
                 } else {
                     ForEach(group.1) { repo in
                         StarRowView(repo: repo)
-                            .tag(repo)
+                                .tag(repo)
                     }
                 }
             }
         }
         .listStyle(.sidebar)
+        .id(viewModel.searchText + viewModel.searchScope.rawValue + viewModel.sortOption.rawValue + viewModel.groupOption.rawValue)
     }
 }
 
@@ -138,7 +165,8 @@ struct SearchBar: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(8)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
     }
@@ -149,23 +177,33 @@ struct StarRowView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            AsyncImage(url: URL(string: repo.owner.avatarUrl)) { image in
-                image.resizable().aspectRatio(contentMode: .fit)
-            } placeholder: {
-                Color.gray.opacity(0.3)
-            }
-            .frame(width: 32, height: 32)
-            .clipShape(Circle())
+            Color.clear
+                .frame(width: 32, height: 32)
+                .overlay {
+                    AsyncImage(url: URL(string: repo.owner.avatarUrl)) { image in
+                        image.resizable().aspectRatio(contentMode: .fit)
+                    } placeholder: {
+                        Color.gray.opacity(0.3)
+                    }
+                }
+                .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(repo.fullName)
                     .font(.system(size: 13, weight: .medium))
-                if let desc = repo.description {
-                    Text(desc)
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
+                Group {
+                    if let desc = repo.description {
+                        Text(desc)
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                    } else {
+                        Text(" ")
+                            .font(.system(size: 11))
+                            .lineLimit(1)
+                    }
                 }
+                .frame(height: 28, alignment: .topLeading)
                 HStack(spacing: 8) {
                     if let lang = repo.language {
                         LanguageTag(language: lang)
@@ -182,6 +220,7 @@ struct StarRowView: View {
             }
         }
         .padding(.vertical, 2)
+        .frame(height: 64)
     }
 }
 

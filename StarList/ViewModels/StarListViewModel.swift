@@ -28,12 +28,31 @@ enum GroupOption: String, CaseIterable {
     }
 }
 
+enum SearchScope: String, CaseIterable {
+    case all = "all"
+    case name = "name"
+    case language = "language"
+    case topic = "topic"
+    case description = "description"
+
+    var displayName: String {
+        switch self {
+        case .all: return "全部"
+        case .name: return "标题"
+        case .language: return "语言"
+        case .topic: return "标签"
+        case .description: return "描述"
+        }
+    }
+}
+
 @MainActor
 final class StarListViewModel: ObservableObject {
     @Published var repos: [StarredRepo] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var searchText = ""
+    @Published var searchScope: SearchScope = .all
     @Published var sortOption: SortOption = .starredAt
     @Published var groupOption: GroupOption = .none
     @Published var isFromCache = false
@@ -44,11 +63,24 @@ final class StarListViewModel: ObservableObject {
     var filteredRepos: [StarredRepo] {
         var result = repos
         if !searchText.isEmpty {
+            let query = searchText.trimmingCharacters(in: .whitespaces)
             result = result.filter {
-                $0.fullName.localizedCaseInsensitiveContains(searchText) ||
-                ($0.description?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                ($0.language?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                $0.topics.contains { $0.localizedCaseInsensitiveContains(searchText) }
+                switch searchScope {
+                case .all:
+                    return $0.fullName.localizedCaseInsensitiveContains(query) ||
+                    ($0.description?.localizedCaseInsensitiveContains(query) ?? false) ||
+                    ($0.language?.caseInsensitiveCompare(query) == .orderedSame) ||
+                    $0.topics.contains { $0.caseInsensitiveCompare(query) == .orderedSame }
+                case .name:
+                    return $0.fullName.localizedCaseInsensitiveContains(query)
+                case .language:
+                    return $0.language?.caseInsensitiveCompare(query) == .orderedSame
+                case .topic:
+                    return $0.topics.contains { $0.caseInsensitiveCompare(query) == .orderedSame } ||
+                    $0.topics.contains { $0.localizedCaseInsensitiveContains(query) }
+                case .description:
+                    return ($0.description?.localizedCaseInsensitiveContains(query) ?? false)
+                }
             }
         }
         return sorted(result)
