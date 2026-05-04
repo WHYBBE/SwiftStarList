@@ -11,17 +11,14 @@ struct RepoDetailView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             headerSection
-
             Divider()
-
-            HStack(spacing: 0) {
-                sidebar
-                Divider()
-                mainContent
-            }
+            mainContent
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .task {
+        .task(id: repo.id) {
+            showReadme = true
+            showAnalysis = false
+            viewModel.reset()
             await viewModel.fetchREADME(repo: repo, settings: settingsManager.settings)
         }
     }
@@ -42,10 +39,12 @@ struct RepoDetailView: View {
 
                 Spacer()
 
-                Link(destination: URL(string: repo.htmlUrl)!) {
-                    Label("在GitHub中打开", systemImage: "arrow.up.right.square")
+                if let url = URL(string: repo.htmlUrl) {
+                    Link(destination: url) {
+                        Label("在GitHub中打开", systemImage: "arrow.up.right.square")
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
             }
 
             if let desc = repo.description {
@@ -72,45 +71,39 @@ struct RepoDetailView: View {
                     }
                 }
             }
+
+            HStack(spacing: 8) {
+                TabButton(title: "README", icon: "doc.text", isSelected: showReadme && !showAnalysis, selectedColor: .accentColor) {
+                    showReadme = true; showAnalysis = false
+                }
+
+                TabButton(title: "AI 分析", icon: "sparkles", isSelected: showAnalysis, selectedColor: .purple) {
+                    showAnalysis = true; showReadme = false
+                    if settingsManager.settings.autoAnalyze && viewModel.analysis == nil {
+                        Task {
+                            await viewModel.analyzeRepo(repo: repo, settings: settingsManager.settings)
+                        }
+                    }
+                }
+            }
         }
         .padding()
-    }
-
-    private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Button(action: { showReadme = true; showAnalysis = false }) {
-                Label("README", systemImage: "doc.text")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.bordered)
-            .tint(showReadme && !showAnalysis ? .accentColor : .clear)
-            .foregroundColor(showReadme && !showAnalysis ? .white : .primary)
-
-            Button(action: { showAnalysis = true; showReadme = false }) {
-                Label("AI 分析", systemImage: "sparkles")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.bordered)
-            .tint(showAnalysis ? .purple : .clear)
-            .foregroundColor(showAnalysis ? .white : .primary)
-
-            Spacer()
-        }
-        .padding(12)
-        .frame(width: 160)
-        .background(Color(nsColor: .controlBackgroundColor))
     }
 
     private var mainContent: some View {
         ScrollView {
-            if showReadme {
-                readmeView
-            } else {
-                analysisView
+            VStack(alignment: .leading) {
+                if showReadme {
+                    readmeView
+                } else {
+                    analysisView
+                }
             }
+            .padding(.leading, 16)
+            .padding(.trailing, 8)
+            .padding(.vertical, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
     }
 
     @ViewBuilder
@@ -171,160 +164,22 @@ struct RepoDetailView: View {
     }
 }
 
-extension Theme {
-    static let transparent = Theme()
-        .text {
-            ForegroundColor(.primary)
-            FontSize(16)
-        }
-        .code {
-            FontFamilyVariant(.monospaced)
-            FontSize(.em(0.85))
-            BackgroundColor(Color(nsColor: .controlBackgroundColor).opacity(0.5))
-        }
-        .strong {
-            FontWeight(.semibold)
-        }
-        .link {
-            ForegroundColor(.link)
-        }
-        .heading1 { configuration in
-            VStack(alignment: .leading, spacing: 0) {
-                configuration.label
-                    .relativePadding(.bottom, length: .em(0.3))
-                    .relativeLineSpacing(.em(0.125))
-                    .markdownMargin(top: 24, bottom: 16)
-                    .markdownTextStyle {
-                        FontWeight(.semibold)
-                        FontSize(.em(2))
-                    }
-                Divider()
-            }
-        }
-        .heading2 { configuration in
-            VStack(alignment: .leading, spacing: 0) {
-                configuration.label
-                    .relativePadding(.bottom, length: .em(0.3))
-                    .relativeLineSpacing(.em(0.125))
-                    .markdownMargin(top: 24, bottom: 16)
-                    .markdownTextStyle {
-                        FontWeight(.semibold)
-                        FontSize(.em(1.5))
-                    }
-                Divider()
-            }
-        }
-        .heading3 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.125))
-                .markdownMargin(top: 24, bottom: 16)
-                .markdownTextStyle {
-                    FontWeight(.semibold)
-                    FontSize(.em(1.25))
-                }
-        }
-        .heading4 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.125))
-                .markdownMargin(top: 24, bottom: 16)
-                .markdownTextStyle {
-                    FontWeight(.semibold)
-                }
-        }
-        .heading5 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.125))
-                .markdownMargin(top: 24, bottom: 16)
-                .markdownTextStyle {
-                    FontWeight(.semibold)
-                    FontSize(.em(0.875))
-                }
-        }
-        .heading6 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.125))
-                .markdownMargin(top: 24, bottom: 16)
-                .markdownTextStyle {
-                    FontWeight(.semibold)
-                    FontSize(.em(0.85))
-                    ForegroundColor(.secondary)
-                }
-        }
-        .paragraph { configuration in
-            configuration.label
-                .fixedSize(horizontal: false, vertical: true)
-                .relativeLineSpacing(.em(0.25))
-                .markdownMargin(top: 0, bottom: 16)
-        }
-        .blockquote { configuration in
-            HStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.secondary.opacity(0.3))
-                    .relativeFrame(width: .em(0.2))
-                configuration.label
-                    .markdownTextStyle { ForegroundColor(.secondary) }
-                    .relativePadding(.horizontal, length: .em(1))
-            }
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .codeBlock { configuration in
-            ScrollView(.horizontal) {
-                configuration.label
-                    .fixedSize(horizontal: false, vertical: true)
-                    .relativeLineSpacing(.em(0.225))
-                    .markdownTextStyle {
-                        FontFamilyVariant(.monospaced)
-                        FontSize(.em(0.85))
-                    }
-                    .padding(16)
-            }
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .markdownMargin(top: 0, bottom: 16)
-        }
-        .listItem { configuration in
-            configuration.label
-                .markdownMargin(top: .em(0.25))
-        }
-        .taskListMarker { configuration in
-            Image(systemName: configuration.isCompleted ? "checkmark.square.fill" : "square")
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.secondary)
-                .imageScale(.small)
-                .relativeFrame(minWidth: .em(1.5), alignment: .trailing)
-        }
-        .table { configuration in
-            configuration.label
-                .fixedSize(horizontal: false, vertical: true)
-                .markdownTableBorderStyle(.init(color: .secondary.opacity(0.3)))
-                .markdownTableBackgroundStyle(
-                    .alternatingRows(Color.clear, Color(nsColor: .controlBackgroundColor).opacity(0.3))
-                )
-                .markdownMargin(top: 0, bottom: 16)
-        }
-        .tableCell { configuration in
-            configuration.label
-                .markdownTextStyle {
-                    if configuration.row == 0 {
-                        FontWeight(.semibold)
-                    }
-                    BackgroundColor(nil)
-                }
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.vertical, 6)
-                .padding(.horizontal, 13)
-                .relativeLineSpacing(.em(0.25))
-        }
-        .thematicBreak {
-            Divider()
-                .relativeFrame(height: .em(0.25))
-                .markdownMargin(top: 24, bottom: 24)
-        }
-}
+private struct TabButton: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let selectedColor: Color
+    let action: () -> Void
 
-private extension Color {
-    static let link = Color(
-        light: Color(rgba: 0x2c65_cfff),
-        dark: Color(rgba: 0x4c8e_f8ff)
-    )
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(isSelected ? selectedColor : Color(nsColor: .controlBackgroundColor))
+                .foregroundColor(isSelected ? .white : .secondary)
+                .cornerRadius(6)
+        }
+        .buttonStyle(.plain)
+    }
 }

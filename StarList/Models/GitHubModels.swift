@@ -1,5 +1,15 @@
 import Foundation
 
+struct StarredRepoEnvelope: Codable {
+    let starredAt: String
+    let repo: StarredRepo
+
+    enum CodingKeys: String, CodingKey {
+        case starredAt = "starred_at"
+        case repo
+    }
+}
+
 struct StarredRepo: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
@@ -14,14 +24,23 @@ struct StarredRepo: Codable, Identifiable, Hashable {
     let updatedAt: String
     let fork: Bool
     let homepage: String?
+    var starredAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, owner, description, language, topics, fork, homepage
+        case id, name, owner, description, language, topics, fork, homepage, starredAt
         case fullName = "full_name"
         case htmlUrl = "html_url"
         case stargazersCount = "stargazers_count"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+    }
+
+    static func == (lhs: StarredRepo, rhs: StarredRepo) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

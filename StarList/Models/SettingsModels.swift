@@ -37,10 +37,12 @@ struct AppSettings: Codable {
     var githubToken: String
     var githubProxyConfig: ProxyConfig
     var llmConfig: LLMConfig
+    var autoAnalyze: Bool
 
     static let `default` = AppSettings(
         githubToken: "",
         githubProxyConfig: .default,
-        llmConfig: .default
+        llmConfig: .default,
+        autoAnalyze: false
     )
 }

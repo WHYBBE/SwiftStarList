@@ -3,9 +3,24 @@ import Foundation
 actor GitHubService {
     private let network = NetworkManager.shared
 
-    func fetchStarredRepos(page: Int = 1, perPage: Int = 100, settings: AppSettings) async throws -> [StarredRepo] {
-        let url = "https://api.github.com/user/starred?per_page=\(perPage)&page=\(page)"
-        return try await network.request(url, settings: settings)
+    func fetchAllStarredRepos(settings: AppSettings) async throws -> [StarredRepo] {
+        var allRepos: [StarredRepo] = []
+        var page = 1
+        let perPage = 100
+
+        while true {
+            let url = "https://api.github.com/user/starred?per_page=\(perPage)&page=\(page)&sort=created&direction=desc"
+            let envelopes: [StarredRepoEnvelope] = try await network.request(url, settings: settings, accept: "application/vnd.github.star+json")
+            let repos = envelopes.map { envelope in
+                var repo = envelope.repo
+                repo.starredAt = envelope.starredAt
+                return repo
+            }
+            allRepos.append(contentsOf: repos)
+            if repos.count < perPage { break }
+            page += 1
+        }
+        return allRepos
     }
 
     func fetchREADME(owner: String, repo: String, settings: AppSettings) async throws -> String {

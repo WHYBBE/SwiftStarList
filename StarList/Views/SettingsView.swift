@@ -31,6 +31,8 @@ struct SettingsView: View {
                     .autocorrectionDisabled()
 
                 ProxyConfigSection(config: $settingsManager.settings.llmConfig.proxyConfig)
+
+                Toggle("点击AI分析时自动开始", isOn: $settingsManager.settings.autoAnalyze)
             }
         }
         .formStyle(.grouped)

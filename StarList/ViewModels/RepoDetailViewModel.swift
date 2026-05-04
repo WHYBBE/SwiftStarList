@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 @MainActor
 final class RepoDetailViewModel: ObservableObject {
@@ -10,6 +10,14 @@ final class RepoDetailViewModel: ObservableObject {
 
     private let githubService = GitHubService()
     private let llmService = LLMService()
+
+    func reset() {
+        readmeContent = nil
+        analysis = nil
+        errorMessage = nil
+        isLoadingREADME = false
+        isLoadingAnalysis = false
+    }
 
     func fetchREADME(repo: StarredRepo, settings: AppSettings) async {
         isLoadingREADME = true

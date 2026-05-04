@@ -6,7 +6,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.activate(ignoringOtherApps: true)
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            NSApp.keyWindow?.makeKey()
+        }
     }
 }
 
@@ -17,7 +20,7 @@ struct StarListApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            StarListView(settingsManager: settingsManager)
                 .environmentObject(settingsManager)
         }
         .windowStyle(.titleBar)

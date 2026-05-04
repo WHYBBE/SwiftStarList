@@ -24,10 +24,10 @@ final class NetworkManager {
     static let shared = NetworkManager()
     private init() {}
 
-    func request<T: Decodable>(_ url: String, settings: AppSettings) async throws -> T {
+    func request<T: Decodable>(_ url: String, settings: AppSettings, accept: String = "application/vnd.github+json") async throws -> T {
         guard let url = URL(string: url) else { throw NetworkError.invalidURL }
         var request = URLRequest(url: url)
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue(accept, forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(settings.githubToken)", forHTTPHeaderField: "Authorization")
         request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
 

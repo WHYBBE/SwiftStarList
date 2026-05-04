@@ -11,6 +11,8 @@ struct StarListView: View {
                 SearchBar(text: $viewModel.searchText)
                     .padding(8)
 
+                filterBar
+
                 if viewModel.isLoading && viewModel.repos.isEmpty {
                     Spacer()
                     ProgressView("加载中...")
@@ -21,38 +23,42 @@ struct StarListView: View {
                         Text("加载失败").font(.headline)
                         Text(error).font(.caption).foregroundColor(.secondary)
                         Button("重试") {
-                            Task { await viewModel.refresh(settings: settingsManager.settings) }
+                            Task { await viewModel.fetchAll(settings: settingsManager.settings) }
                         }
                         .buttonStyle(.bordered)
                     }
                     .padding()
                     Spacer()
                 } else {
-                    List(viewModel.filteredRepos, selection: $selectedRepo) { repo in
-                        StarRowView(repo: repo)
-                            .tag(repo)
-                            .onAppear {
-                                if repo == viewModel.filteredRepos.last {
-                                    Task { await viewModel.loadMore(settings: settingsManager.settings) }
-                                }
-                            }
-                    }
-                    .listStyle(.sidebar)
+                    repoList
                 }
             }
             .navigationTitle("Star 列表")
+            .navigationSplitViewColumnWidth(min: 260, ideal: 300)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        Task { await viewModel.refresh(settings: settingsManager.settings) }
-                    }) {
-                        Image(systemName: "arrow.clockwise")
+                    HStack(spacing: 8) {
+                        if viewModel.isFromCache {
+                            Text("缓存")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        Button(action: {
+                            Task { await viewModel.fetchAll(settings: settingsManager.settings) }
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                        }
                     }
                 }
             }
             .task {
+                viewModel.loadFromCache()
                 if viewModel.repos.isEmpty {
-                    await viewModel.loadRepos(settings: settingsManager.settings)
+                    await viewModel.fetchAll(settings: settingsManager.settings)
                 }
             }
         } detail: {
@@ -64,6 +70,54 @@ struct StarListView: View {
                     .foregroundColor(.secondary)
             }
         }
+        .navigationSplitViewStyle(.automatic)
+    }
+
+    private var filterBar: some View {
+        HStack(spacing: 6) {
+            Picker("排序", selection: $viewModel.sortOption) {
+                ForEach(SortOption.allCases, id: \.self) { opt in
+                    Text(opt.displayName).tag(opt)
+                }
+            }
+            .labelsHidden()
+
+            Picker("分组", selection: $viewModel.groupOption) {
+                ForEach(GroupOption.allCases, id: \.self) { opt in
+                    Text(opt.displayName).tag(opt)
+                }
+            }
+            .labelsHidden()
+
+            Spacer()
+
+            Text("\(viewModel.filteredRepos.count) 个仓库")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+    }
+
+    private var repoList: some View {
+        List(selection: $selectedRepo) {
+            ForEach(viewModel.groupedRepos, id: \.0) { group in
+                if viewModel.groupOption != .none {
+                    Section(group.0) {
+                        ForEach(group.1) { repo in
+                            StarRowView(repo: repo)
+                                .tag(repo)
+                        }
+                    }
+                } else {
+                    ForEach(group.1) { repo in
+                        StarRowView(repo: repo)
+                            .tag(repo)
+                    }
+                }
+            }
+        }
+        .listStyle(.sidebar)
     }
 }
 
@@ -119,6 +173,11 @@ struct StarRowView: View {
                     Label("\(repo.stargazersCount)", systemImage: "star.fill")
                         .font(.system(size: 10))
                         .foregroundColor(.orange)
+                    if let starredAt = repo.starredAt {
+                        Text(starredAt.prefix(10))
+                            .font(.system(size: 9))
+                            .foregroundStyle(.tertiary)
+                    }
                 }
             }
         }
@@ -153,6 +212,13 @@ struct LanguageTag: View {
         case "Ruby": return .red
         case "Kotlin": return .purple
         case "Shell": return .green
+        case "Dart": return .cyan
+        case "PHP": return .purple
+        case "C#": return .purple
+        case "Objective-C": return .orange
+        case "HTML": return .orange
+        case "CSS": return .purple
+        case "Vue": return .green
         default: return .gray
         }
     }
