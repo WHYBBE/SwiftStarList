@@ -177,15 +177,8 @@ struct StarRowView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            Color.clear
+            CachedAvatarView(urlString: repo.owner.avatarUrl)
                 .frame(width: 32, height: 32)
-                .overlay {
-                    AsyncImage(url: URL(string: repo.owner.avatarUrl)) { image in
-                        image.resizable().aspectRatio(contentMode: .fit)
-                    } placeholder: {
-                        Color.gray.opacity(0.3)
-                    }
-                }
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 3) {
@@ -260,5 +253,47 @@ struct LanguageTag: View {
         case "Vue": return .green
         default: return .gray
         }
+    }
+}
+
+struct CachedAvatarView: View {
+    let urlString: String
+    @State private var image: NSImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                Color.gray.opacity(0.3)
+            }
+        }
+        .onAppear {
+            if let cached = AvatarCache.shared.image(for: urlString) {
+                self.image = cached
+            } else {
+                Task { await loadImage() }
+            }
+        }
+        .onChange(of: urlString) { _, _ in
+            if let cached = AvatarCache.shared.image(for: urlString) {
+                self.image = cached
+            } else {
+                image = nil
+                Task { await loadImage() }
+            }
+        }
+    }
+
+    private func loadImage() async {
+        guard let url = URL(string: urlString) else { return }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard let nsImage = NSImage(data: data) else { return }
+            AvatarCache.shared.setImage(nsImage, for: urlString)
+            self.image = nsImage
+        } catch {}
     }
 }

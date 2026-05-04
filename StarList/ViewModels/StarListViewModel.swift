@@ -122,6 +122,8 @@ final class StarListViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         isFromCache = false
+        repos = []
+        AvatarCache.shared.clear()
         defer { isLoading = false }
 
         do {
