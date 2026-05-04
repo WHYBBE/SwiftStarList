@@ -26,6 +26,7 @@ struct StarListApp: App {
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified(showsTitle: true))
         .defaultSize(width: 1000, height: 700)
+        .defaultAppStorage(UserDefaults.standard)
 
         Settings {
             SettingsView(settingsManager: settingsManager)

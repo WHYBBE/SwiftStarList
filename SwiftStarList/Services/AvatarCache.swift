@@ -10,7 +10,7 @@ final class AvatarCache {
         memoryCache.countLimit = 500
 
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        diskCacheDir = appSupport.appendingPathComponent("StarList/avatars", isDirectory: true)
+        diskCacheDir = appSupport.appendingPathComponent("SwiftStarList/avatars", isDirectory: true)
         try? FileManager.default.createDirectory(at: diskCacheDir, withIntermediateDirectories: true)
     }
 

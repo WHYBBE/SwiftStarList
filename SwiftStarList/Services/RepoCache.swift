@@ -9,7 +9,7 @@ final class RepoCache {
 
     private init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        cacheDirectory = appSupport.appendingPathComponent("StarList", isDirectory: true)
+        cacheDirectory = appSupport.appendingPathComponent("SwiftStarList", isDirectory: true)
         reposFile = cacheDirectory.appendingPathComponent("starred_repos.json")
         try? FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
     }

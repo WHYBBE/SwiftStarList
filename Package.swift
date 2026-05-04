@@ -2,22 +2,22 @@
 import PackageDescription
 
 let package = Package(
-    name: "StarList",
+    name: "SwiftStarList",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "StarList", targets: ["StarList"]),
+        .executable(name: "SwiftStarList", targets: ["SwiftStarList"]),
     ],
     dependencies: [
         .package(url: "https://github.com/gonzalezreal/swift-markdown-ui", from: "2.2.0"),
     ],
     targets: [
         .executableTarget(
-            name: "StarList",
+            name: "SwiftStarList",
             dependencies: [
                 .product(name: "MarkdownUI", package: "swift-markdown-ui"),
             ],
-            path: "StarList",
-            exclude: ["StarList.entitlements"]
+            path: "SwiftStarList",
+            exclude: ["SwiftStarList.entitlements"]
         ),
     ]
 )
