@@ -30,7 +30,7 @@ final class RepoDetailViewModel: ObservableObject {
                 settings: settings
             )
         } catch {
-            readmeContent = "获取README失败: \(error.localizedDescription)"
+            readmeContent = "无法获取README"
         }
     }
 
@@ -39,7 +39,7 @@ final class RepoDetailViewModel: ObservableObject {
             await fetchREADME(repo: repo, settings: settings)
         }
 
-        guard let readme = readmeContent, !readme.hasPrefix("获取README失败") else {
+        guard let readme = readmeContent, !readme.hasPrefix("无法获取README") else {
             errorMessage = "无法获取README，请先确保README加载成功"
             return
         }
