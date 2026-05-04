@@ -17,7 +17,10 @@ let package = Package(
                 .product(name: "MarkdownUI", package: "swift-markdown-ui"),
             ],
             path: "SwiftStarList",
-            exclude: ["SwiftStarList.entitlements"]
+            exclude: ["SwiftStarList.entitlements"],
+            resources: [
+                .process("Assets.xcassets")
+            ]
         ),
     ]
 )

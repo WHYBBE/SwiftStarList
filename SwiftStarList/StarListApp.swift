@@ -19,7 +19,7 @@ struct StarListApp: App {
     @StateObject private var settingsManager = SettingsManager.shared
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("Github Star List") {
             StarListView(settingsManager: settingsManager)
                 .environmentObject(settingsManager)
         }
