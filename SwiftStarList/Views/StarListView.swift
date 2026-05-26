@@ -107,9 +107,15 @@ struct StarListView: View {
                 }
             }
             .labelsHidden()
+            .onChange(of: viewModel.sortOption) { _, _ in
+                let available = GroupOption.available(for: viewModel.sortOption)
+                if !available.contains(viewModel.groupOption) {
+                    viewModel.groupOption = .none
+                }
+            }
 
             Picker("分组", selection: $viewModel.groupOption) {
-                ForEach(GroupOption.allCases, id: \.self) { opt in
+                ForEach(GroupOption.available(for: viewModel.sortOption), id: \.self) { opt in
                     Text(opt.displayName).tag(opt)
                 }
             }

@@ -19,11 +19,28 @@ enum SortOption: String, CaseIterable {
 enum GroupOption: String, CaseIterable {
     case none = "none"
     case language = "language"
+    case starredAtYear = "starred_at_year"
+    case pushedAtYear = "pushed_at_year"
+    case nameLetter = "name_letter"
+    case starsRange = "stars_range"
 
     var displayName: String {
         switch self {
         case .none: return "无分组"
         case .language: return "按语言"
+        case .starredAtYear: return "按收藏年份"
+        case .pushedAtYear: return "按更新年份"
+        case .nameLetter: return "按首字母"
+        case .starsRange: return "按Star数"
+        }
+    }
+
+    static func available(for sort: SortOption) -> [GroupOption] {
+        switch sort {
+        case .starredAt: return [.none, .language, .starredAtYear]
+        case .updated: return [.none, .language, .pushedAtYear]
+        case .name: return [.none, .language, .nameLetter]
+        case .stars: return [.none, .language, .starsRange]
         }
     }
 }
@@ -94,7 +111,50 @@ final class StarListViewModel: ObservableObject {
         case .language:
             let grouped = Dictionary(grouping: filtered) { $0.language ?? "其他" }
             return grouped.sorted { $0.key.localizedStandardCompare($1.key) == .orderedAscending }
+        case .starredAtYear:
+            let grouped = Dictionary(grouping: filtered) { year(from: $0.starredAt) }
+            return grouped.sorted { $0.key > $1.key }
+        case .pushedAtYear:
+            let grouped = Dictionary(grouping: filtered) { year(from: $0.pushedAt) }
+            return grouped.sorted { $0.key > $1.key }
+        case .nameLetter:
+            let grouped = Dictionary(grouping: filtered) { firstLetter(of: $0.fullName) }
+            return grouped.sorted { $0.key.localizedStandardCompare($1.key) == .orderedAscending }
+        case .starsRange:
+            let grouped = Dictionary(grouping: filtered) { starsRange($0.stargazersCount) }
+            return grouped.sorted { starsRangeOrder[$0.key] ?? 0 > starsRangeOrder[$1.key] ?? 0 }
         }
+    }
+
+    private func year(from dateStr: String?) -> String {
+        guard let s = dateStr, s.count >= 4 else { return "未知" }
+        return String(s.prefix(4))
+    }
+
+    private func firstLetter(of name: String) -> String {
+        guard let ch = name.first else { return "#" }
+        if ch.isLetter {
+            let upper = String(ch.uppercased())
+            if ch.isASCII { return upper }
+            return upper
+        }
+        return "#"
+    }
+
+    private func starsRange(_ count: Int) -> String {
+        switch count {
+        case ..<100: return "0-99"
+        case 100..<500: return "100-499"
+        case 500..<1000: return "500-999"
+        case 1000..<5000: return "1k-5k"
+        case 5000..<10000: return "5k-10k"
+        case 10000..<50000: return "10k-50k"
+        default: return "50k+"
+        }
+    }
+
+    private var starsRangeOrder: [String: Int] {
+        ["50k+": 6, "10k-50k": 5, "5k-10k": 4, "1k-5k": 3, "500-999": 2, "100-499": 1, "0-99": 0]
     }
 
     private func sorted(_ repos: [StarredRepo]) -> [StarredRepo] {
