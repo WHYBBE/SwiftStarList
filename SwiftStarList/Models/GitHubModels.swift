@@ -22,6 +22,7 @@ struct StarredRepo: Codable, Identifiable, Hashable {
     let topics: [String]
     let createdAt: String
     let updatedAt: String
+    let pushedAt: String?
     let fork: Bool
     let homepage: String?
     var starredAt: String?
@@ -33,6 +34,7 @@ struct StarredRepo: Codable, Identifiable, Hashable {
         case stargazersCount = "stargazers_count"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case pushedAt = "pushed_at"
     }
 
     static func == (lhs: StarredRepo, rhs: StarredRepo) -> Bool {

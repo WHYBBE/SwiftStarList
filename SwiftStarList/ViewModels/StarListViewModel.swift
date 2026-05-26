@@ -106,7 +106,7 @@ final class StarListViewModel: ObservableObject {
         case .stars:
             return repos.sorted { $0.stargazersCount > $1.stargazersCount }
         case .updated:
-            return repos.sorted { $0.updatedAt > $1.updatedAt }
+            return repos.sorted { $0.pushedAt ?? "" > $1.pushedAt ?? "" }
         }
     }
 

@@ -204,16 +204,21 @@ struct StarRowView: View {
                     Label("\(repo.stargazersCount)", systemImage: "star.fill")
                         .font(.system(size: 10))
                         .foregroundColor(.orange)
+                }
+                HStack(spacing: 12) {
                     if let starredAt = repo.starredAt {
-                        Text(starredAt.prefix(10))
-                            .font(.system(size: 9))
-                            .foregroundStyle(.tertiary)
+                        Label(starredAt.prefix(10), systemImage: "star")
+                    }
+                    if let pushedAt = repo.pushedAt {
+                        Label(pushedAt.prefix(10), systemImage: "clock")
                     }
                 }
+                .font(.system(size: 9))
+                .foregroundStyle(.tertiary)
             }
         }
         .padding(.vertical, 2)
-        .frame(height: 64)
+        .frame(height: 78)
     }
 }
 
