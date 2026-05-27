@@ -123,9 +123,12 @@ struct StarListView: View {
 
             Spacer()
 
-            Text("\(viewModel.filteredRepos.count)")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            HStack(spacing: 4) {
+                Text("\(viewModel.filteredRepos.count)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                                QuickTipView()
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
@@ -306,5 +309,29 @@ struct CachedAvatarView: View {
             AvatarCache.shared.setImage(nsImage, for: urlString)
             self.image = nsImage
         } catch {}
+    }
+}
+
+struct QuickTipView: View {
+    @State private var isHovered = false
+
+    var body: some View {
+        Image(systemName: "info.circle")
+            .font(.system(size: 11))
+            .foregroundColor(.secondary)
+            .onHover { hovering in
+                isHovered = hovering
+            }
+            .popover(isPresented: $isHovered, arrowEdge: .bottom) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("提示").font(.caption.bold())
+                    Text("• GitHub 页面包含关注的主题，因此数量可能更多")
+                        .font(.caption)
+                    Text("• 此处不包含私有仓库的 Star")
+                        .font(.caption)
+                }
+                .frame(width: 240, alignment: .leading)
+                .padding(8)
+            }
     }
 }
