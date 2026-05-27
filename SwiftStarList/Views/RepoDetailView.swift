@@ -29,7 +29,7 @@ struct RepoDetailView: View {
                 AsyncImage(url: URL(string: repo.owner.avatarUrl)) { image in
                     image.resizable().aspectRatio(contentMode: .fit)
                 } placeholder: {
-                    Color.gray
+                    Color(nsColor: .placeholderTextColor).opacity(0.3)
                 }
                 .frame(width: 28, height: 28)
                 .clipShape(Circle())
@@ -41,9 +41,10 @@ struct RepoDetailView: View {
 
                 if let url = URL(string: repo.htmlUrl) {
                     Link(destination: url) {
-                        Label("在GitHub中打开", systemImage: "arrow.up.right.square")
+                        Label(L.s.openInGithub, systemImage: "arrow.up.right.square")
                     }
                     .buttonStyle(.bordered)
+                    .id(settingsManager.languageVersion)
                 }
             }
 
@@ -65,7 +66,7 @@ struct RepoDetailView: View {
                             ForEach(repo.topics, id: \.self) { topic in
                                 Text("#\(topic)")
                                     .font(.caption)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.link)
                             }
                         }
                     }
@@ -73,11 +74,12 @@ struct RepoDetailView: View {
             }
 
             HStack(spacing: 8) {
-                TabButton(title: "README", icon: "doc.text", isSelected: showReadme && !showAnalysis, selectedColor: .accentColor) {
+                TabButton(title: L.s.readmeTab, icon: "doc.text", isSelected: showReadme && !showAnalysis, selectedColor: .accentColor) {
                     showReadme = true; showAnalysis = false
                 }
+                .id(settingsManager.languageVersion)
 
-                TabButton(title: "AI 分析", icon: "sparkles", isSelected: showAnalysis, selectedColor: .purple) {
+                TabButton(title: L.s.aiTab, icon: "sparkles", isSelected: showAnalysis, selectedColor: .purple) {
                     showAnalysis = true; showReadme = false
                     if settingsManager.settings.autoAnalyze && viewModel.analysis == nil {
                         Task {
@@ -85,6 +87,7 @@ struct RepoDetailView: View {
                         }
                     }
                 }
+                .id(settingsManager.languageVersion)
             }
         }
         .padding()
@@ -111,8 +114,9 @@ struct RepoDetailView: View {
         if viewModel.isLoadingREADME {
             VStack(spacing: 12) {
                 ProgressView()
-                Text("加载README...")
+                Text(L.s.loadingReadme)
                     .foregroundColor(.secondary)
+                    .id(settingsManager.languageVersion)
             }
             .frame(maxWidth: .infinity, minHeight: 200)
         } else if let content = viewModel.readmeContent {
@@ -136,8 +140,9 @@ struct RepoDetailView: View {
         } else if viewModel.isLoadingAnalysis {
             VStack(spacing: 12) {
                 ProgressView()
-                Text("AI 正在分析...")
+                Text(L.s.analyzing)
                     .foregroundColor(.secondary)
+                    .id(settingsManager.languageVersion)
             }
             .frame(maxWidth: .infinity, minHeight: 200)
         } else if let analysis = viewModel.analysis {
@@ -149,9 +154,10 @@ struct RepoDetailView: View {
                 Image(systemName: "sparkles")
                     .font(.largeTitle)
                     .foregroundColor(.purple)
-                Text("点击下方按钮让AI分析此仓库")
+                Text(L.s.analyzeRepo)
                     .foregroundColor(.secondary)
-                Button("开始分析") {
+                    .id(settingsManager.languageVersion)
+                Button(L.s.startAnalysis) {
                     Task {
                         await viewModel.analyzeRepo(repo: repo, settings: settingsManager.settings)
                     }

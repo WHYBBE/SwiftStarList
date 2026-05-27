@@ -30,7 +30,7 @@ final class RepoDetailViewModel: ObservableObject {
                 settings: settings
             )
         } catch {
-            readmeContent = "无法获取README"
+            readmeContent = L.s.cannotGetReadme
         }
     }
 
@@ -39,13 +39,13 @@ final class RepoDetailViewModel: ObservableObject {
             await fetchREADME(repo: repo, settings: settings)
         }
 
-        guard let readme = readmeContent, !readme.hasPrefix("无法获取README") else {
-            errorMessage = "无法获取README，请先确保README加载成功"
+        guard let readme = readmeContent, !readme.hasPrefix(L.s.cannotGetReadme) else {
+            errorMessage = L.s.readReadmeFirst
             return
         }
 
         guard !settings.llmConfig.apiKey.isEmpty else {
-            errorMessage = "请先配置LLM API Key"
+            errorMessage = L.s.configureApiKey
             return
         }
 
@@ -56,7 +56,7 @@ final class RepoDetailViewModel: ObservableObject {
         do {
             analysis = try await llmService.analyze(repo: repo, readme: readme, settings: settings)
         } catch {
-            errorMessage = "LLM分析失败: \(error.localizedDescription)"
+            errorMessage = "\(L.s.analyzeFailed): \(error.localizedDescription)"
         }
     }
 }

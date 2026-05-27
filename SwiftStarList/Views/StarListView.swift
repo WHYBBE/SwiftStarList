@@ -9,28 +9,31 @@ struct StarListView: View {
         NavigationSplitView {
             VStack(spacing: 0) {
                 SearchBar(text: $viewModel.searchText)
+                    .id(settingsManager.languageVersion)
                     .padding(.horizontal, 8)
                     .padding(.top, 8)
 
                 if !viewModel.searchText.isEmpty {
                     scopeBar
+                        .id(settingsManager.languageVersion)
                         .padding(.horizontal, 8)
                         .padding(.top, 4)
                         .padding(.bottom, 4)
                 }
 
                 filterBar
+                    .id(settingsManager.languageVersion)
 
                 if viewModel.isLoading && viewModel.repos.isEmpty {
                     Spacer()
-                    ProgressView("加载中...")
+                    ProgressView(L.s.loading)
                     Spacer()
                 } else if let error = viewModel.errorMessage {
                     Spacer()
                     VStack(spacing: 12) {
-                        Text("加载失败").font(.headline)
+                        Text(L.s.loadFailed).font(.headline)
                         Text(error).font(.caption).foregroundColor(.secondary)
-                        Button("重试") {
+                        Button(L.s.retry) {
                             Task { await viewModel.fetchAll(settings: settingsManager.settings) }
                         }
                         .buttonStyle(.bordered)
@@ -41,13 +44,13 @@ struct StarListView: View {
                     repoList
                 }
             }
-            .navigationTitle("Star 列表")
+            .navigationTitle(L.s.starListTitle)
             .navigationSplitViewColumnWidth(min: 260, ideal: 300)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     HStack(spacing: 8) {
                         if viewModel.isFromCache {
-                            Text("缓存")
+                            Text(L.s.cache)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -73,7 +76,7 @@ struct StarListView: View {
             if let repo = selectedRepo {
                 RepoDetailView(repo: repo, settingsManager: settingsManager)
             } else {
-                Text("选择一个仓库查看详情")
+                Text(L.s.selectRepo)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .foregroundColor(.secondary)
             }
@@ -101,7 +104,7 @@ struct StarListView: View {
 
     private var filterBar: some View {
         HStack(spacing: 6) {
-            Picker("排序", selection: $viewModel.sortOption) {
+            Picker(L.s.sortLabel, selection: $viewModel.sortOption) {
                 ForEach(SortOption.allCases, id: \.self) { opt in
                     Text(opt.displayName).tag(opt)
                 }
@@ -114,7 +117,7 @@ struct StarListView: View {
                 }
             }
 
-            Picker("分组", selection: $viewModel.groupOption) {
+            Picker(L.s.groupLabel, selection: $viewModel.groupOption) {
                 ForEach(GroupOption.available(for: viewModel.sortOption), id: \.self) { opt in
                     Text(opt.displayName).tag(opt)
                 }
@@ -153,7 +156,7 @@ struct StarListView: View {
             }
         }
         .listStyle(.sidebar)
-        .id(viewModel.searchText + viewModel.searchScope.rawValue + viewModel.sortOption.rawValue + viewModel.groupOption.rawValue)
+        .id(viewModel.searchText + viewModel.searchScope.rawValue + viewModel.sortOption.rawValue + viewModel.groupOption.rawValue + String(settingsManager.languageVersion))
     }
 }
 
@@ -164,7 +167,7 @@ struct SearchBar: View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
-            TextField("搜索仓库...", text: $text)
+            TextField(L.s.searchRepo, text: $text)
                 .textFieldStyle(.plain)
             if !text.isEmpty {
                 Button(action: { text = "" }) {
@@ -281,7 +284,7 @@ struct CachedAvatarView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             } else {
-                Color.gray.opacity(0.3)
+                Color(nsColor: .placeholderTextColor).opacity(0.3)
             }
         }
         .onAppear {
@@ -324,10 +327,10 @@ struct QuickTipView: View {
             }
             .popover(isPresented: $isHovered, arrowEdge: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("提示").font(.caption.bold())
-                    Text("• GitHub 页面包含关注的主题，因此数量可能更多")
+                    Text(L.s.hintTitle).font(.caption.bold())
+                    Text(L.s.hintTopic)
                         .font(.caption)
-                    Text("• 此处不包含私有仓库的 Star")
+                    Text(L.s.hintPrivate)
                         .font(.caption)
                 }
                 .frame(width: 240, alignment: .leading)

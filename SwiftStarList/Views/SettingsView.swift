@@ -6,12 +6,28 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("GitHub") {
+            Section(L.s.languageSection) {
+                Picker(L.s.languageSection, selection: $settingsManager.settings.language) {
+                    ForEach(AppLanguage.allCases, id: \.self) { lang in
+                        Text(lang.displayName).tag(lang)
+                    }
+                }
+            }
+
+            Section(L.s.themeSection) {
+                Picker(L.s.themeSection, selection: $settingsManager.settings.theme) {
+                    ForEach(AppTheme.allCases, id: \.self) { theme in
+                        Text(theme.displayName).tag(theme)
+                    }
+                }
+            }
+
+            Section(L.s.githubSection) {
                 HStack {
                     if showToken {
-                        TextField("GitHub Token", text: $settingsManager.settings.githubToken)
+                        TextField(L.s.githubToken, text: $settingsManager.settings.githubToken)
                     } else {
-                        SecureField("GitHub Token", text: $settingsManager.settings.githubToken)
+                        SecureField(L.s.githubToken, text: $settingsManager.settings.githubToken)
                     }
                     Button(action: { showToken.toggle() }) {
                         Image(systemName: showToken ? "eye.slash" : "eye")
@@ -22,20 +38,21 @@ struct SettingsView: View {
                 ProxyConfigSection(config: $settingsManager.settings.githubProxyConfig)
             }
 
-            Section("LLM 设置") {
-                TextField("Base URL", text: $settingsManager.settings.llmConfig.baseURL)
+            Section(L.s.llmSection) {
+                TextField(L.s.baseURL, text: $settingsManager.settings.llmConfig.baseURL)
                     .textContentType(.URL)
                     .autocorrectionDisabled()
-                SecureField("API Key", text: $settingsManager.settings.llmConfig.apiKey)
-                TextField("Model", text: $settingsManager.settings.llmConfig.model)
+                SecureField(L.s.apiKey, text: $settingsManager.settings.llmConfig.apiKey)
+                TextField(L.s.model, text: $settingsManager.settings.llmConfig.model)
                     .autocorrectionDisabled()
 
                 ProxyConfigSection(config: $settingsManager.settings.llmConfig.proxyConfig)
 
-                Toggle("点击AI分析时自动开始", isOn: $settingsManager.settings.autoAnalyze)
+                Toggle(L.s.autoAnalyze, isOn: $settingsManager.settings.autoAnalyze)
             }
         }
         .formStyle(.grouped)
+        .id(settingsManager.languageVersion)
         .frame(minWidth: 500, minHeight: 500)
     }
 }
@@ -45,17 +62,17 @@ struct ProxyConfigSection: View {
 
     var body: some View {
         Group {
-            Picker("代理模式", selection: $config.mode) {
+            Picker(L.s.proxyMode, selection: $config.mode) {
                 ForEach(ProxyMode.allCases, id: \.self) { mode in
                     Text(mode.displayName).tag(mode)
                 }
             }
 
             if config.mode == .http || config.mode == .socks {
-                TextField("主机地址", text: $config.host)
+                TextField(L.s.host, text: $config.host)
                     .textContentType(.URL)
                     .autocorrectionDisabled()
-                TextField("端口", value: $config.port, format: .number)
+                TextField(L.s.port, value: $config.port, format: .number)
             }
         }
     }

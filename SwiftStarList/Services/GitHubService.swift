@@ -30,12 +30,12 @@ actor GitHubService {
         let data = try await network.requestRaw(url, settings: settings)
         let readme = try JSONDecoder().decode(READMEContent.self, from: data)
         guard let content = readme.content, readme.encoding == "base64" else {
-            return "无法读取README内容"
+            return L.s.cannotReadReadme
         }
         let cleaned = content.replacingOccurrences(of: "\n", with: "")
         guard let decodedData = Data(base64Encoded: cleaned) else {
-            return "Base64解码失败"
+            return L.s.base64Failed
         }
-        return String(data: decodedData, encoding: .utf8) ?? "编码转换失败"
+        return String(data: decodedData, encoding: .utf8) ?? L.s.encodingFailed
     }
 }

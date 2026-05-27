@@ -7,11 +7,12 @@ enum SortOption: String, CaseIterable {
     case updated = "updated"
 
     var displayName: String {
+        let s = L.s
         switch self {
-        case .starredAt: return "收藏时间"
-        case .name: return "名称"
-        case .stars: return "Star数"
-        case .updated: return "更新时间"
+        case .starredAt: return s.sortStarredAt
+        case .name: return s.sortName
+        case .stars: return s.sortStars
+        case .updated: return s.sortUpdated
         }
     }
 }
@@ -25,13 +26,14 @@ enum GroupOption: String, CaseIterable {
     case starsRange = "stars_range"
 
     var displayName: String {
+        let s = L.s
         switch self {
-        case .none: return "无分组"
-        case .language: return "按语言"
-        case .starredAtYear: return "按收藏年份"
-        case .pushedAtYear: return "按更新年份"
-        case .nameLetter: return "按首字母"
-        case .starsRange: return "按Star数"
+        case .none: return s.groupNone
+        case .language: return s.groupLanguage
+        case .starredAtYear: return s.groupStarredAtYear
+        case .pushedAtYear: return s.groupPushedAtYear
+        case .nameLetter: return s.groupNameLetter
+        case .starsRange: return s.groupStarsRange
         }
     }
 
@@ -53,12 +55,13 @@ enum SearchScope: String, CaseIterable {
     case description = "description"
 
     var displayName: String {
+        let s = L.s
         switch self {
-        case .all: return "全部"
-        case .name: return "标题"
-        case .language: return "语言"
-        case .topic: return "标签"
-        case .description: return "描述"
+        case .all: return s.scopeAll
+        case .name: return s.scopeName
+        case .language: return s.scopeLanguage
+        case .topic: return s.scopeTopic
+        case .description: return s.scopeDescription
         }
     }
 }
@@ -109,7 +112,7 @@ final class StarListViewModel: ObservableObject {
         case .none:
             return [("", filtered)]
         case .language:
-            let grouped = Dictionary(grouping: filtered) { $0.language ?? "其他" }
+            let grouped = Dictionary(grouping: filtered) { $0.language ?? L.s.other }
             return grouped.sorted { $0.key.localizedStandardCompare($1.key) == .orderedAscending }
         case .starredAtYear:
             let grouped = Dictionary(grouping: filtered) { year(from: $0.starredAt) }
@@ -127,7 +130,7 @@ final class StarListViewModel: ObservableObject {
     }
 
     private func year(from dateStr: String?) -> String {
-        guard let s = dateStr, s.count >= 4 else { return "未知" }
+        guard let s = dateStr, s.count >= 4 else { return L.s.unknown }
         return String(s.prefix(4))
     }
 

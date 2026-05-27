@@ -6,8 +6,15 @@ final class SettingsManager: ObservableObject {
     private let settingsKey = "app_settings"
 
     @Published var settings: AppSettings {
-        didSet { save() }
+        didSet {
+            save()
+            if oldValue.language != settings.language {
+                languageVersion += 1
+            }
+        }
     }
+
+    @Published var languageVersion = 0
 
     private init() {
         if let data = defaults.data(forKey: settingsKey),

@@ -9,13 +9,14 @@ enum NetworkError: LocalizedError {
     case proxyConnectionFailed
 
     var errorDescription: String? {
+        let s = L.s
         switch self {
-        case .invalidURL: return "无效的URL"
-        case .unauthorized: return "未授权，请检查GitHub Token"
-        case .httpError(let code, let msg): return "HTTP错误 \(code): \(msg)"
-        case .decodingError(let e): return "解码错误: \(e.localizedDescription)"
-        case .noData: return "无数据返回"
-        case .proxyConnectionFailed: return "代理连接失败"
+        case .invalidURL: return s.invalidURL
+        case .unauthorized: return s.unauthorized
+        case .httpError(let code, let msg): return "\(s.httpError) \(code): \(msg)"
+        case .decodingError(let e): return "\(s.decodingError): \(e.localizedDescription)"
+        case .noData: return s.noData
+        case .proxyConnectionFailed: return s.proxyConnectionFailed
         }
     }
 }
