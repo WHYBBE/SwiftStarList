@@ -10,14 +10,16 @@ actor GitHubService {
 
         while true {
             let url = "https://api.github.com/user/starred?per_page=\(perPage)&page=\(page)&sort=created&direction=desc"
-            let envelopes: [StarredRepoEnvelope] = try await network.request(url, settings: settings, accept: "application/vnd.github.star+json")
+            let (envelopes, hasNextPage) = try await network.requestWithPagination(
+                url, settings: settings, accept: "application/vnd.github.star+json"
+            ) as ([StarredRepoEnvelope], Bool)
             let repos = envelopes.map { envelope in
                 var repo = envelope.repo
                 repo.starredAt = envelope.starredAt
                 return repo
             }
             allRepos.append(contentsOf: repos)
-            if repos.count < perPage { break }
+            if !hasNextPage { break }
             page += 1
         }
         return allRepos

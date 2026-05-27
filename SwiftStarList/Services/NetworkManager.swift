@@ -42,6 +42,36 @@ final class NetworkManager {
         }
     }
 
+    func requestWithPagination<T: Decodable>(_ url: String, settings: AppSettings, accept: String = "application/vnd.github+json") async throws -> (T, Bool) {
+        guard let url = URL(string: url) else { throw NetworkError.invalidURL }
+        var request = URLRequest(url: url)
+        request.setValue(accept, forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(settings.githubToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
+
+        let session = makeSession(proxyConfig: settings.githubProxyConfig)
+        let (data, response) = try await session.data(for: request)
+
+        try checkResponse(response, data: data)
+
+        let decoded: T
+        do {
+            decoded = try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            throw NetworkError.decodingError(error)
+        }
+
+        let hasNextPage: Bool
+        if let httpResponse = response as? HTTPURLResponse,
+           let linkHeader = httpResponse.value(forHTTPHeaderField: "Link") {
+            hasNextPage = linkHeader.contains("rel=\"next\"")
+        } else {
+            hasNextPage = false
+        }
+
+        return (decoded, hasNextPage)
+    }
+
     func requestRaw(_ url: String, settings: AppSettings) async throws -> Data {
         guard let url = URL(string: url) else { throw NetworkError.invalidURL }
         var request = URLRequest(url: url)
