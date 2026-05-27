@@ -44,20 +44,34 @@ enum AppTheme: String, CaseIterable, Codable {
         }
     }
 
-    var colorScheme: ColorScheme {
+    var resolvedAppearance: NSAppearance {
         switch self {
-        case .system: return Self.systemColorScheme
-        case .light: return .light
-        case .dark: return .dark
+        case .light: return NSAppearance(named: .aqua)!
+        case .dark: return NSAppearance(named: .darkAqua)!
+        case .system:
+            let saved = NSApp.appearance
+            NSApp.appearance = nil
+            let isDark = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            NSApp.appearance = saved
+            return isDark ? NSAppearance(named: .darkAqua)! : NSAppearance(named: .aqua)!
         }
     }
 
-    private static var systemColorScheme: ColorScheme {
-        let saved = NSApp.appearance
-        NSApp.appearance = nil
-        let isDark = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-        NSApp.appearance = saved
-        return isDark ? .dark : .light
+    var resolvedColorScheme: ColorScheme? {
+        switch self {
+        case .system:
+            if SettingsManager.shared.isSettingsOpen {
+                let saved = NSApp.appearance
+                NSApp.appearance = nil
+                let isDark = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+                NSApp.appearance = saved
+                return isDark ? .dark : .light
+            } else {
+                return nil
+            }
+        case .light: return .light
+        case .dark: return .dark
+        }
     }
 }
 

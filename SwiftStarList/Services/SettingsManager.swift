@@ -15,6 +15,7 @@ final class SettingsManager: ObservableObject {
     }
 
     @Published var languageVersion = 0
+    @Published var isSettingsOpen = false
 
     private init() {
         if let data = defaults.data(forKey: settingsKey),

@@ -54,6 +54,18 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .id(settingsManager.languageVersion)
         .frame(minWidth: 500, minHeight: 500)
+        .onDisappear {
+            settingsManager.isSettingsOpen = false
+            if settingsManager.settings.theme == .system {
+                NSApp.appearance = nil
+                for window in NSApp.windows {
+                    window.appearance = nil
+                }
+            }
+        }
+        .onAppear {
+            settingsManager.isSettingsOpen = true
+        }
     }
 }
 
