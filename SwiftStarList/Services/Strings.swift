@@ -93,6 +93,18 @@ struct Strings {
     let loadingActivity: String
     let draftBadge: String
     let prereleaseBadge: String
+    let contributors: String
+    let noContributors: String
+    let languages: String
+    let noLanguages: String
+    let license: String
+    let noLicense: String
+    let openIssues: String
+    let noOpenIssues: String
+    let openPulls: String
+    let noOpenPulls: String
+    let infoTab: String
+    let issuesTab: String
 
     static let zh = Strings(
         sortStarredAt: "收藏时间",
@@ -174,7 +186,19 @@ struct Strings {
         noReleases: "暂无发布",
         loadingActivity: "加载动态...",
         draftBadge: "草稿",
-        prereleaseBadge: "预发布"
+        prereleaseBadge: "预发布",
+        contributors: "贡献者",
+        noContributors: "暂无贡献者",
+        languages: "语言",
+        noLanguages: "暂无语言数据",
+        license: "许可证",
+        noLicense: "暂无许可证",
+        openIssues: "未关闭 Issue",
+        noOpenIssues: "暂无未关闭 Issue",
+        openPulls: "未合并 PR",
+        noOpenPulls: "暂无未合并 PR",
+        infoTab: "概览",
+        issuesTab: "Issue/PR"
     )
 
     static let en = Strings(
@@ -257,6 +281,18 @@ struct Strings {
         noReleases: "No releases yet",
         loadingActivity: "Loading activity...",
         draftBadge: "Draft",
-        prereleaseBadge: "Pre-release"
+        prereleaseBadge: "Pre-release",
+        contributors: "Contributors",
+        noContributors: "No contributors",
+        languages: "Languages",
+        noLanguages: "No language data",
+        license: "License",
+        noLicense: "No license",
+        openIssues: "Open Issues",
+        noOpenIssues: "No open issues",
+        openPulls: "Open PRs",
+        noOpenPulls: "No open PRs",
+        infoTab: "Overview",
+        issuesTab: "Issues/PRs"
     )
 }

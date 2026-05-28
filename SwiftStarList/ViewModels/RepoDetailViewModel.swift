@@ -14,6 +14,11 @@ final class RepoDetailViewModel: ObservableObject {
     @Published var recentTags: [RepoTag] = []
     @Published var recentCommits: [RepoCommit] = []
     @Published var recentReleases: [RepoRelease] = []
+    @Published var contributors: [RepoContributor] = []
+    @Published var languages: [String: Int] = [:]
+    @Published var license: RepoLicense?
+    @Published var openIssues: [RepoIssue] = []
+    @Published var openPulls: [RepoPullRequest] = []
     @Published var isLoadingActivity = false
 
     func reset() {
@@ -25,6 +30,11 @@ final class RepoDetailViewModel: ObservableObject {
         recentTags = []
         recentCommits = []
         recentReleases = []
+        contributors = []
+        languages = [:]
+        license = nil
+        openIssues = []
+        openPulls = []
         isLoadingActivity = false
     }
 
@@ -83,15 +93,31 @@ final class RepoDetailViewModel: ObservableObject {
             async let releases = githubService.fetchRecentReleases(
                 owner: repo.owner.login, repo: repo.name, settings: settings
             )
-            let (fetchedTags, fetchedCommits, fetchedReleases) = try await (tags, commits, releases)
+            async let contribs = githubService.fetchContributors(
+                owner: repo.owner.login, repo: repo.name, settings: settings
+            )
+            async let langs = githubService.fetchLanguages(
+                owner: repo.owner.login, repo: repo.name, settings: settings
+            )
+            async let lic = githubService.fetchLicense(
+                owner: repo.owner.login, repo: repo.name, settings: settings
+            )
+            async let issues = githubService.fetchOpenIssues(
+                owner: repo.owner.login, repo: repo.name, settings: settings
+            )
+            async let pulls = githubService.fetchOpenPulls(
+                owner: repo.owner.login, repo: repo.name, settings: settings
+            )
+            let (fetchedTags, fetchedCommits, fetchedReleases, fetchedContribs, fetchedLangs, fetchedLic, fetchedIssues, fetchedPulls) = try await (tags, commits, releases, contribs, langs, lic, issues, pulls)
 
-            let tagShas = Set(fetchedTags.map(\.commit.sha))
-            recentCommits = fetchedCommits.map { commit in
-                var c = commit
-                return c
-            }
             recentTags = fetchedTags
             recentReleases = fetchedReleases
+            recentCommits = fetchedCommits
+            contributors = fetchedContribs
+            languages = fetchedLangs
+            license = fetchedLic
+            openIssues = fetchedIssues
+            openPulls = fetchedPulls
         } catch {}
     }
 }

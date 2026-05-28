@@ -53,4 +53,36 @@ actor GitHubService {
         let url = "https://api.github.com/repos/\(owner)/\(repo)/releases?per_page=\(perPage)"
         return try await network.request(url, settings: settings)
     }
+
+    func fetchContributors(owner: String, repo: String, settings: AppSettings, perPage: Int = 10) async throws -> [RepoContributor] {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/contributors?per_page=\(perPage)"
+        return try await network.request(url, settings: settings)
+    }
+
+    func fetchLanguages(owner: String, repo: String, settings: AppSettings) async throws -> [String: Int] {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/languages"
+        let data = try await network.requestRaw(url, settings: settings)
+        return (try? JSONDecoder().decode([String: Int].self, from: data)) ?? [:]
+    }
+
+    func fetchLicense(owner: String, repo: String, settings: AppSettings) async throws -> RepoLicense? {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/license"
+        let data = try await network.requestRaw(url, settings: settings)
+        let wrapper = try? JSONDecoder().decode(LicenseWrapper.self, from: data)
+        return wrapper?.license
+    }
+
+    func fetchOpenIssues(owner: String, repo: String, settings: AppSettings, perPage: Int = 5) async throws -> [RepoIssue] {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/issues?state=open&sort=created&direction=desc&per_page=\(perPage)"
+        return try await network.request(url, settings: settings)
+    }
+
+    func fetchOpenPulls(owner: String, repo: String, settings: AppSettings, perPage: Int = 5) async throws -> [RepoPullRequest] {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/pulls?state=open&sort=created&direction=desc&per_page=\(perPage)"
+        return try await network.request(url, settings: settings)
+    }
+}
+
+private struct LicenseWrapper: Codable {
+    let license: RepoLicense?
 }

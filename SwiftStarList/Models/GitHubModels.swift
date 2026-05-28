@@ -141,3 +141,76 @@ struct ReleaseAuthorInfo: Codable {
         case avatarUrl = "avatar_url"
     }
 }
+
+struct RepoContributor: Codable, Identifiable, Hashable {
+    let id: Int
+    let login: String
+    let avatarUrl: String
+    let contributions: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id, login, contributions
+        case avatarUrl = "avatar_url"
+    }
+}
+
+struct RepoLicense: Codable {
+    let key: String
+    let name: String
+    let spdxId: String?
+    let htmlUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case key, name
+        case spdxId = "spdx_id"
+        case htmlUrl = "html_url"
+    }
+}
+
+struct RepoIssue: Codable, Identifiable {
+    let id: Int
+    let number: Int
+    let title: String
+    let htmlUrl: String
+    let state: String
+    let createdAt: String
+    let user: IssueUser?
+    let labels: [IssueLabel]?
+
+    enum CodingKeys: String, CodingKey {
+        case id, number, title, state, labels, user
+        case htmlUrl = "html_url"
+        case createdAt = "created_at"
+    }
+}
+
+struct IssueUser: Codable {
+    let login: String?
+    let avatarUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case login
+        case avatarUrl = "avatar_url"
+    }
+}
+
+struct IssueLabel: Codable {
+    let name: String
+    let color: String
+}
+
+struct RepoPullRequest: Codable, Identifiable {
+    let id: Int
+    let number: Int
+    let title: String
+    let htmlUrl: String
+    let state: String
+    let createdAt: String
+    let user: IssueUser?
+
+    enum CodingKeys: String, CodingKey {
+        case id, number, title, state, user
+        case htmlUrl = "html_url"
+        case createdAt = "created_at"
+    }
+}
