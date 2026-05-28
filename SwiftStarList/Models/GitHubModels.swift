@@ -62,3 +62,82 @@ struct READMEContent: Codable {
     let name: String
     let path: String
 }
+
+struct RepoTag: Codable, Identifiable {
+    let name: String
+    let commit: TagCommit
+
+    var id: String { name }
+}
+
+struct TagCommit: Codable {
+    let sha: String
+    let url: String?
+}
+
+struct RepoCommit: Codable, Identifiable {
+    let sha: String
+    let htmlUrl: String?
+    let commit: CommitDetail
+    let author: CommitAuthorInfo?
+
+    var id: String { sha }
+
+    enum CodingKeys: String, CodingKey {
+        case sha, commit, author
+        case htmlUrl = "html_url"
+    }
+}
+
+struct CommitDetail: Codable {
+    let author: CommitUser?
+    let committer: CommitUser?
+    let message: String
+}
+
+struct CommitUser: Codable {
+    let name: String?
+    let email: String?
+    let date: String?
+}
+
+struct CommitAuthorInfo: Codable {
+    let login: String?
+    let avatarUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case login
+        case avatarUrl = "avatar_url"
+    }
+}
+
+struct RepoRelease: Codable, Identifiable {
+    let id: Int
+    let tagName: String
+    let name: String?
+    let body: String?
+    let draft: Bool
+    let prerelease: Bool
+    let createdAt: String
+    let publishedAt: String?
+    let htmlUrl: String
+    let author: ReleaseAuthorInfo?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, body, draft, prerelease, author
+        case tagName = "tag_name"
+        case createdAt = "created_at"
+        case publishedAt = "published_at"
+        case htmlUrl = "html_url"
+    }
+}
+
+struct ReleaseAuthorInfo: Codable {
+    let login: String?
+    let avatarUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case login
+        case avatarUrl = "avatar_url"
+    }
+}

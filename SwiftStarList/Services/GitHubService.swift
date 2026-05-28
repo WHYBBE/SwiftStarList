@@ -38,4 +38,19 @@ actor GitHubService {
         }
         return String(data: decodedData, encoding: .utf8) ?? L.s.encodingFailed
     }
+
+    func fetchRecentTags(owner: String, repo: String, settings: AppSettings, perPage: Int = 10) async throws -> [RepoTag] {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/tags?per_page=\(perPage)"
+        return try await network.request(url, settings: settings)
+    }
+
+    func fetchRecentCommits(owner: String, repo: String, settings: AppSettings, perPage: Int = 10) async throws -> [RepoCommit] {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/commits?per_page=\(perPage)"
+        return try await network.request(url, settings: settings)
+    }
+
+    func fetchRecentReleases(owner: String, repo: String, settings: AppSettings, perPage: Int = 10) async throws -> [RepoRelease] {
+        let url = "https://api.github.com/repos/\(owner)/\(repo)/releases?per_page=\(perPage)"
+        return try await network.request(url, settings: settings)
+    }
 }

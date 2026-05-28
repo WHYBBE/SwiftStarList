@@ -83,6 +83,16 @@ struct Strings {
     let groupLabel: String
     let proxyHost: String
     let proxyPort: String
+    let activityTab: String
+    let recentTags: String
+    let recentCommits: String
+    let recentReleases: String
+    let noTags: String
+    let noCommits: String
+    let noReleases: String
+    let loadingActivity: String
+    let draftBadge: String
+    let prereleaseBadge: String
 
     static let zh = Strings(
         sortStarredAt: "收藏时间",
@@ -154,7 +164,17 @@ struct Strings {
         sortLabel: "排序",
         groupLabel: "分组",
         proxyHost: "主机地址",
-        proxyPort: "端口"
+        proxyPort: "端口",
+        activityTab: "动态",
+        recentTags: "最近标签",
+        recentCommits: "最近提交",
+        recentReleases: "最近发布",
+        noTags: "暂无标签",
+        noCommits: "暂无提交",
+        noReleases: "暂无发布",
+        loadingActivity: "加载动态...",
+        draftBadge: "草稿",
+        prereleaseBadge: "预发布"
     )
 
     static let en = Strings(
@@ -227,6 +247,16 @@ struct Strings {
         sortLabel: "Sort",
         groupLabel: "Group",
         proxyHost: "Host",
-        proxyPort: "Port"
+        proxyPort: "Port",
+        activityTab: "Activity",
+        recentTags: "Recent Tags",
+        recentCommits: "Recent Commits",
+        recentReleases: "Recent Releases",
+        noTags: "No tags yet",
+        noCommits: "No commits yet",
+        noReleases: "No releases yet",
+        loadingActivity: "Loading activity...",
+        draftBadge: "Draft",
+        prereleaseBadge: "Pre-release"
     )
 }
