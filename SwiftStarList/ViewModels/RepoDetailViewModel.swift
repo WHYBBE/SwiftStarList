@@ -70,12 +70,22 @@ final class RepoDetailViewModel: ObservableObject {
 
         isLoadingAnalysis = true
         errorMessage = nil
+        analysis = ""
         defer { isLoadingAnalysis = false }
 
         do {
-            analysis = try await llmService.analyze(repo: repo, readme: readme, settings: settings)
+            analysis = try await llmService.analyzeStream(
+                repo: repo, readme: readme, settings: settings,
+                onChunk: { [weak self] partial in
+                    Task { @MainActor in
+                        self?.analysis = partial
+                    }
+                }
+            )
         } catch {
-            errorMessage = "\(L.s.analyzeFailed): \(error.localizedDescription)"
+            if analysis?.isEmpty ?? true {
+                errorMessage = "\(L.s.analyzeFailed): \(error.localizedDescription)"
+            }
         }
     }
 

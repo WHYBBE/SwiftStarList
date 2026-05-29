@@ -32,7 +32,7 @@ final class NetworkManager {
         request.setValue("Bearer \(settings.githubToken)", forHTTPHeaderField: "Authorization")
         request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
 
-        let session = makeSession(proxyConfig: settings.githubProxyConfig)
+        let session = makeSessionForProxy(settings.githubProxyConfig)
         let (data, response) = try await session.data(for: request)
 
         try checkResponse(response, data: data)
@@ -50,7 +50,7 @@ final class NetworkManager {
         request.setValue("Bearer \(settings.githubToken)", forHTTPHeaderField: "Authorization")
         request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
 
-        let session = makeSession(proxyConfig: settings.githubProxyConfig)
+        let session = makeSessionForProxy(settings.githubProxyConfig)
         let (data, response) = try await session.data(for: request)
 
         try checkResponse(response, data: data)
@@ -80,7 +80,7 @@ final class NetworkManager {
         request.setValue("Bearer \(settings.githubToken)", forHTTPHeaderField: "Authorization")
         request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
 
-        let session = makeSession(proxyConfig: settings.githubProxyConfig)
+        let session = makeSessionForProxy(settings.githubProxyConfig)
         let (data, response) = try await session.data(for: request)
         try checkResponse(response, data: data)
         return data
@@ -96,7 +96,7 @@ final class NetworkManager {
         }
         request.httpBody = try JSONEncoder().encode(body)
 
-        let session = makeSession(proxyConfig: proxyConfig)
+        let session = makeSessionForProxy(proxyConfig)
         let (data, response) = try await session.data(for: request)
         try checkResponse(response, data: data)
         do {
@@ -106,7 +106,7 @@ final class NetworkManager {
         }
     }
 
-    private func makeSession(proxyConfig: ProxyConfig) -> URLSession {
+    func makeSessionForProxy(_ proxyConfig: ProxyConfig) -> URLSession {
         switch proxyConfig.mode {
         case .none:
             return URLSession.shared

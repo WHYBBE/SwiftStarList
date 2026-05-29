@@ -3,7 +3,7 @@ import Foundation
 actor LLMService {
     private let network = NetworkManager.shared
 
-    func analyze(repo: StarredRepo, readme: String, settings: AppSettings) async throws -> String {
+    func analyzeStream(repo: StarredRepo, readme: String, settings: AppSettings, onChunk: @escaping (String) -> Void) async throws -> String {
         let s = L.s
         let prompt: String
         let systemMessage: String
@@ -68,16 +68,55 @@ actor LLMService {
                 ChatMessage(role: "system", content: systemMessage),
                 ChatMessage(role: "user", content: prompt)
             ],
-            temperature: 0.3
+            temperature: 0.3,
+            stream: true
         )
 
         let baseURL = settings.llmConfig.baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let path = baseURL.hasSuffix("/v1") ? "chat/completions" : "v1/chat/completions"
-        let url = "\(baseURL)/\(path)"
-        let response: ChatCompletionResponse = try await network.postJSON(url, body: request, apiKey: settings.llmConfig.apiKey, proxyConfig: settings.llmConfig.proxyConfig)
-        guard let choice = response.choices.first else {
+        guard let url = URL(string: "\(baseURL)/\(path)") else {
             return s.llmNoResponse
         }
-        return choice.message.content
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !settings.llmConfig.apiKey.isEmpty {
+            urlRequest.setValue("Bearer \(settings.llmConfig.apiKey)", forHTTPHeaderField: "Authorization")
+        }
+        urlRequest.httpBody = try JSONEncoder().encode(request)
+
+        let session = network.makeSessionForProxy(settings.llmConfig.proxyConfig)
+        let (bytes, response) = try await session.bytes(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            return s.llmNoResponse
+        }
+        if httpResponse.statusCode == 401 { throw NetworkError.unauthorized }
+        if !(200...299).contains(httpResponse.statusCode) {
+            var body = ""
+            for try await line in bytes.lines {
+                body.append(line)
+            }
+            throw NetworkError.httpError(httpResponse.statusCode, body)
+        }
+
+        var result = ""
+        let decoder = JSONDecoder()
+        for try await line in bytes.lines {
+            guard line.hasPrefix("data: ") else { continue }
+            let data = String(line.dropFirst(6))
+            if data == "[DONE]" { break }
+            guard let lineData = data.data(using: .utf8) else { continue }
+            guard let chunk = try? decoder.decode(ChatCompletionStreamResponse.self, from: lineData) else { continue }
+            guard let content = chunk.choices.first?.delta.content else { continue }
+            result.append(content)
+            onChunk(result)
+        }
+
+        guard !result.isEmpty else {
+            return s.llmNoResponse
+        }
+        return result
     }
 }

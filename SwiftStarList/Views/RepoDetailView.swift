@@ -129,7 +129,7 @@ struct RepoDetailView: View {
                     } else if showIssues {
                         issuesView
                     } else {
-                        analysisView
+                        analysisView(proxy: proxy)
                     }
                 }
                 .padding(.leading, 16)
@@ -137,6 +137,13 @@ struct RepoDetailView: View {
                 .padding(.vertical, 8)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .onChange(of: viewModel.analysis ?? "") { oldValue, newValue in
+                if newValue.count > oldValue.count {
+                    withAnimation {
+                        proxy.scrollTo("analysis-end", anchor: .bottom)
+                    }
+                }
+            }
         }
     }
 
@@ -395,7 +402,7 @@ struct RepoDetailView: View {
     }
 
     @ViewBuilder
-    private var analysisView: some View {
+    private func analysisView(proxy: ScrollViewProxy) -> some View {
         if let error = viewModel.errorMessage {
             VStack(spacing: 12) {
                 Image(systemName: "exclamationmark.triangle")
@@ -405,6 +412,24 @@ struct RepoDetailView: View {
                     .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity, minHeight: 200)
+        } else if let analysis = viewModel.analysis, !analysis.isEmpty {
+            VStack(alignment: .leading) {
+                Markdown(analysis)
+                    .markdownTheme(.transparent)
+                    .tint(.purple)
+                if viewModel.isLoadingAnalysis {
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                        Text(L.s.analyzing)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .id(settingsManager.languageVersion)
+                    }
+                    .padding(.top, 4)
+                }
+                Color.clear.frame(height: 1).id("analysis-end")
+            }
         } else if viewModel.isLoadingAnalysis {
             VStack(spacing: 12) {
                 ProgressView()
@@ -413,10 +438,6 @@ struct RepoDetailView: View {
                     .id(settingsManager.languageVersion)
             }
             .frame(maxWidth: .infinity, minHeight: 200)
-        } else if let analysis = viewModel.analysis {
-            Markdown(analysis)
-                .markdownTheme(.transparent)
-                .tint(.purple)
         } else {
             VStack(spacing: 16) {
                 Image(systemName: "sparkles")
